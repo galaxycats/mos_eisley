@@ -1,0 +1,15 @@
+# example for mogileFS adapter
+adapter:
+  type: mogilefs
+  tracker: mogiletrack1:6001, mogiletrack2:6001
+  domain: foo_domain
+  class: bar_class
+
+# example for files-system adapter
+# adapter:
+#   type: filesystem
+#   storage_location: "/tmp/storage_location"
+
+# example for memory adapter
+# adapter:
+#   type: memory

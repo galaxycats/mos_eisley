@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'mongrel'
+require 'net/http'
+require 'optparse'
+require File.dirname(__FILE__) + '/../lib/mos_eisley'
+require 'pp'
+ 
+options = {}
+print_help = false
+daemonize = false
+LOG_FILE_PATH    = "mongrel_mos_eisley.log"
+
+available_options = OptionParser.new do |opts|
+  
+  opts.banner = "Usage: mongrel_mos_eisley [options]"
+  
+  opts.on("-h", "--help", "Print this help screen.") do |opt|
+    print_help = true
+  end
+  
+  opts.on("-d", "--daemonize", "Run daemonized in the background") do |opt|
+    daemonize = true
+  end
+  
+  opts.on('-p', '--port PORT', "Which port to bind to") do |opt|
+    options['port'] = opt
+  end
+  
+  opts.on('-a', '--address ADDR', "Address to bind to") do |opt|
+    options['address'] = opt
+  end
+  
+  opts.on('-A', '--adapter-config PATH', "Use a adapter-config file") do |opt|
+    options['adapter_config_path'] = opt
+  end
+  
+  opts.on('-l', '--log FILE', "Where to write log messages") do |opt|
+    options['logfile'] = opt
+  end
+  # 
+  # opts.on('-B', '--debug', "Enable debugging mode") do |opt|
+  #   options['debug'] = true
+  # end
+  # 
+  # opts.on('-C', '--config PATH', "Use a mongrel-config file") do |opt|
+  #   options['mongrel_config_path'] = opt
+  # end
+  
+end
+
+begin
+  available_options.parse!(ARGV)
+rescue OptionParser::ParseError => e
+  puts e
+end
+
+puts available_options.summarize if print_help
+
+LOGGER = Logger.new(options["logfile"] || LOG_FILE_PATH)
+LOGGER.level = Logger::DEBUG
+LOGGER.datetime_format = "%H:%M:%S"
+
+mos_eisley = MosEisley.new(options)
+if daemonize
+  mos_eisley.daemonize
+else
+  Signal.trap("INT") { exit }
+  Signal.trap("TERM") { exit }
+end
+mos_eisley.run

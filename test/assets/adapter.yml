@@ -1,0 +1,3 @@
+adapter:
+  type: filesystem
+  storage_location: "test/assets"
