@@ -18,6 +18,9 @@ class MosEisley
           ImageResizer::ResizeGenerator.resize(image) if parsed_path.resize_to
           response.start(200) do |head,out|
             head["Content-Type"] = "image/jpeg"
+            head["ETag"] = %Q{"#{image.etag}"}
+            head["Last-Modified"] = Time.now.to_formatted_s(:rfc822)
+            head["Expires"] = image.expires_at.to_formatted_s(:rfc822)
             image.file_data.rewind
             out.write(image.file_data.read)
           end

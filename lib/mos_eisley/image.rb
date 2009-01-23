@@ -10,6 +10,15 @@ class MosEisley
       self.dimension = dimension
       adapter.read(self)
     end
+    
+    def etag
+      file_data.rewind
+      "#{Digest::MD5.hexdigest(file_data.read)}-#{id}"
+    end
+    
+    def expires_at
+      Time.now + 2.month
+    end
   
     def image_data
       self.file_data

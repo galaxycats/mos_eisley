@@ -84,14 +84,6 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     end
   end
   
-  # def test_should_have_validate_nil_size
-  #   MosEisley::Handler.publicize_methods do
-  #     parsed_path = MosEisley::Handler::ParsedPath.new("4711", nil, "seo-kram")
-  #     assert_equal nil, parsed_path.dimension
-  #     assert parsed_path.valid?
-  #   end
-  # end
-  
   def test_should_return_404_if_path_is_invalid
     adapter = mock("Adapter")
     mos_eisley_handler = MosEisley::Handler.new(adapter)
@@ -134,6 +126,8 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     dummy_params = {"PATH_INFO" => "/ingendein-seo-kram-67434267-85x64_deadbeef00.jpg", "SERVER_NAME" => "localhost"}
     request.expects(:params).returns(dummy_params)
     image = mock("DummyImage")
+    image.expects(:etag).returns("etag_for_image")
+    image.expects(:expires_at).returns(Time.parse("Mon, 23 Mar 2009 16:25:23 +0100"))
     MosEisley::Image.expects(:new).with("67434267", ImageResizer::Dimension.new(85,64), adapter).returns(image)
     ImageResizer::ResizeGenerator.expects(:resize).with(image)
     file_data = StringIO.new("ein kleines Bild, ein kleines Bild!")
@@ -154,6 +148,8 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     UrlSigner.any_instance.stubs(:hash).returns("deadbeef00")
     request.expects(:params).returns({"PATH_INFO" => "/ingendein-seo-kram-67434267_deadbeef00.jpg", "SERVER_NAME" => "localhost"})
     image = mock("DummyImage")
+    image.expects(:etag).returns("etag_for_image")
+    image.expects(:expires_at).returns(Time.parse("Mon, 23 Mar 2009 16:25:23 +0100"))
     MosEisley::Image.expects(:new).with("67434267", nil, adapter).returns(image)
     ImageResizer::ResizeGenerator.expects(:resize).never
     file_data = StringIO.new("das default Bild ohne resize!")
@@ -163,6 +159,59 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     response.body.rewind
     assert_match(/Content\-Type\:\simage\/jpeg/, response.header.out.read)
     assert_equal "das default Bild ohne resize!", response.body.read
+  end
+  
+  def test_should_set_etag_in_header_and_last_modified
+    adapter = mock("Adapter")
+    mos_eisley_handler = MosEisley::Handler.new(adapter)
+    response_socket = StringIO.new
+    response = Mongrel::HttpResponse.new(response_socket)
+    request = mock("Mongrel::MockHttpRequest")
+    request.expects(:params)
+    parsed_path = mock("parsed_path_mock")
+    parsed_path.expects(:resize_to).returns(false)
+    parsed_path.expects(:image_id).returns("3id27")
+    parsed_path.expects(:dimension)
+    mos_eisley_handler.expects(:parse_and_validate_path).returns(parsed_path)
+    image = mock("DummyImage")
+    image.expects(:etag).returns("foomd5-3id27")
+    image.expects(:expires_at).returns(Time.parse("Mon, 23 Mar 2009 16:25:23 +0100"))
+    MosEisley::Image.expects(:new).returns(image)
+    image_io = StringIO.new("imagefile")
+    image.expects(:file_data).at_least_once.returns(image_io)
+    last_modified = mock("Time")
+    Time.expects(:now).returns(last_modified)
+    last_modified.expects(:to_formatted_s).with(:rfc822).returns("Fri, 23 Jan 2009 16:25:23 +0100")
+    process_response = mos_eisley_handler.process(request,response)
+    response.header.out.rewind
+    response.body.rewind
+    assert_match(/ETag\:\s\"foomd5-3id27\"/, response.header.out.read)
+    response.header.out.rewind
+    assert_match(/Last\-Modified\:\sFri,\s23\sJan\s2009\s16\:25\:23\s\+0100/, response.header.out.read)
+  end
+  
+  def test_should_set_expire_date
+    adapter = mock("Adapter")
+    mos_eisley_handler = MosEisley::Handler.new(adapter)
+    response_socket = StringIO.new
+    response = Mongrel::HttpResponse.new(response_socket)
+    request = mock("Mongrel::MockHttpRequest")
+    request.expects(:params)
+    parsed_path = mock("parsed_path_mock")
+    parsed_path.expects(:resize_to).returns(false)
+    parsed_path.expects(:image_id).returns("3id27")
+    parsed_path.expects(:dimension)
+    mos_eisley_handler.expects(:parse_and_validate_path).returns(parsed_path)
+    image = mock("DummyImage")
+    image.expects(:etag).returns("foomd5-3id27")
+    image.expects(:expires_at).returns(Time.parse("Mon, 23 Mar 2009 16:25:23 +0100"))
+    MosEisley::Image.expects(:new).returns(image)
+    image_io = StringIO.new("imagefile")
+    image.expects(:file_data).at_least_once.returns(image_io)
+    process_response = mos_eisley_handler.process(request,response)
+    response.header.out.rewind
+    response.body.rewind
+    assert_match(/Expires\:\sMon,\s23\sMar\s2009\s16\:25\:23\s\+0100/, response.header.out.read)
   end
   
 end
