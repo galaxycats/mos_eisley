@@ -35,8 +35,12 @@ available_options = OptionParser.new do |opts|
     options['adapter_config_path'] = opt
   end
   
-  opts.on('-l', '--log FILE', "Where to write log messages") do |opt|
-    options['logfile'] = opt
+  opts.on('-l', '--log FILE', "Where to write application log messages") do |opt|
+    options['application_logfile'] = opt
+  end
+  
+  opts.on('-r', '--requestlog FILE', "Where to write request log messages") do |opt|
+    options['request_logfile'] = opt
   end
   # 
   # opts.on('-B', '--debug', "Enable debugging mode") do |opt|
@@ -57,9 +61,9 @@ end
 
 puts available_options.summarize if print_help
 
-LOGGER = Logger.new(options["logfile"] || LOG_FILE_PATH)
-LOGGER.level = Logger::DEBUG
-LOGGER.datetime_format = "%H:%M:%S"
+# LOGGER = Logger.new(options["logfile"] || LOG_FILE_PATH)
+# LOGGER.level = Logger::DEBUG
+# LOGGER.datetime_format = "%H:%M:%S"
 
 mos_eisley = MosEisley.new(options)
 if daemonize

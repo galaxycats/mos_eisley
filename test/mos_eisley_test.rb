@@ -13,7 +13,7 @@ class MosEisleyTest < Test::Unit::TestCase
     mongrel_http_server.expects(:run).returns(mock("ObjectToCallJoinOn", :join => true))
     Mongrel::HttpServer.expects(:new).with("0.0.0.0", "3324").returns(mongrel_http_server)
     mos_eisley.expects(:adapter).at_least_once.returns(mock("adapter"))
-    
+    mos_eisley.expects(:application_logger).at_least_once.returns(Logger.new(StringIO.new))
     mos_eisley.run
   end
   
@@ -77,6 +77,7 @@ class MosEisleyTest < Test::Unit::TestCase
     http_server.expects(:register)
     MosEisley::Handler.expects(:new).returns(stub_everything)
     http_server.expects(:run).returns(mock("ObjectToCallJoinOn", :join => true))
+    mos_eisley.expects(:application_logger).at_least_once.returns(Logger.new(StringIO.new))
     mos_eisley.run
   end
   

@@ -13,7 +13,7 @@ class MosEisley
     
     def etag
       file_data.rewind
-      "#{Digest::MD5.hexdigest(file_data.read)}-#{id}"
+      "#{Digest::MD5.hexdigest(file_data.read)}-#{self.image_id}"
     end
     
     def expires_at

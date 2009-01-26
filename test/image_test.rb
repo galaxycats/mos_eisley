@@ -38,7 +38,7 @@ class ImageTest < Test::Unit::TestCase
     image_file_data = mock("File")
     image_file_data.expects(:rewind)
     image_file_data.expects(:read).returns("read_data")
-    image.expects(:id).returns("2342")
+    image.expects(:image_id).returns("2342")
     image.expects(:file_data).times(2).returns(image_file_data)
     Digest::MD5.expects(:hexdigest).with("read_data").returns("imageMD5")
     assert_equal "imageMD5-2342", image.etag
