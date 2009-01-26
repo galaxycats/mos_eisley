@@ -2,17 +2,17 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mos_eisley}
-  s.version = "0.3.0"
+  s.version = "0.3.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Caroo GmbH"]
-  s.date = %q{2009-01-15}
+  s.date = %q{2009-01-26}
   s.default_executable = %q{mongrel_mos_eisley}
   s.description = %q{}
   s.email = ["dev@pkw.de"]
   s.executables = ["mongrel_mos_eisley"]
   s.extra_rdoc_files = ["History.txt", "Manifest.txt", "README.rdoc"]
-  s.files = ["COPYING", "History.txt", "MIT-LICENSE", "Manifest.txt", "README.rdoc", "Rakefile", "bin/config.yml.example", "bin/mongrel_mos_eisley", "lib/mos_eisley.rb", "lib/mos_eisley/exceptions.rb", "lib/mos_eisley/handler.rb", "lib/mos_eisley/image.rb", "lib/mos_eisley/image_sizes.rb", "test/assets/123456", "test/assets/adapter.yml", "test/handler_test.rb", "test/image_test.rb", "test/integration_test.rb", "test/mongrel_mos_eisley_test.rb", "test/mos_eisley_test.rb", "test/test_helper.rb"]
+  s.files = ["COPYING", "History.txt", "MIT-LICENSE", "Manifest.txt", "README.rdoc", "Rakefile", "bin/config.yml.example", "bin/mongrel_mos_eisley", "lib/mos_eisley.rb", "lib/mos_eisley/exceptions.rb", "lib/mos_eisley/handler.rb", "lib/mos_eisley/image.rb", "mos_eisley.gemspec", "test/assets/123456", "test/assets/adapter.yml", "test/handler_test.rb", "test/image_test.rb", "test/integration_test.rb", "test/mongrel_mos_eisley_test.rb", "test/mos_eisley_test.rb", "test/test_helper.rb"]
   s.has_rdoc = true
   s.homepage = %q{MosEisley is an mongrel-handler which serves images with thumbnail-generation from a persistence-adapter.}
   s.post_install_message = %q{PostInstall.txt}
