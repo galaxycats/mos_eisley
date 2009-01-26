@@ -7,7 +7,7 @@ class IntegrationTest < Test::Unit::TestCase
   def setup
     @mongrel_mos_eisley_pid = fork do
       Dir.chdir(File.dirname(__FILE__) + '/..')
-      exec("ruby bin/mongrel_mos_eisley -p 3324 -a localhost -A test/assets/adapter.yml")
+      exec("ruby bin/mongrel_mos_eisley -p 3324 -a localhost -A test/assets/adapter.yml > /dev/null 2>&1")
     end
     sleep(2) # waiting for mongrel to startup
   end

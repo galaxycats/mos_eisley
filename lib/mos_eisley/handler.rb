@@ -2,12 +2,13 @@ require 'url_signer'
 
 class MosEisley
   class Handler < Mongrel::HttpHandler
-    
+    attr_reader :logger
     # TODO: Secret key in config file verschieben
     URL_SIGNER = UrlSigner.new("h5h56j675j*!f$uipojf%")
     
-    def initialize(adapter)
+    def initialize(adapter,logger=nil)
       self.adapter = adapter
+      self.logger = logger || Logger.new(STDOUT) 
     end
 
     def process(request, response)
@@ -29,13 +30,19 @@ class MosEisley
         end
       rescue MosEisley::Exceptions::InvalidPath, MosEisley::Exceptions::PathParseError => e
         respond_with_404(response, e)
+      ensure
+        self.logger.info("#{request.params['REMOTE_ADDR']} - - [#{Time.now.strftime("%d/%b/%Y:%H:%M:%S %Z")}] \"#{request.params['REQUEST_METHOD']} #{request.params['REQUEST_URI']} #{request.params['SERVER_PROTOCOL']}\" #{response.status} #{response.body.size}")
       end
     end
 
     private
 
     attr_accessor :adapter
-
+    
+    def logger=(logger)
+      @logger = logger
+    end
+    
     class ParsedPath
       attr_accessor :image_id, :resize_to, :seo
 

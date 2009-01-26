@@ -26,28 +26,44 @@ class MosEisley
     :port => "3324"
   }
   
-  attr_reader :logger
+  attr_reader :logger, :application_logger, :request_logger
   
   def initialize(options = {})
     options.symbolize_keys!
     set_mongrel_config(options)
     set_adapter(options)
+    set_log_config(options)
   end
   
   def run
-    puts "** Starting Mongrel listening at #{mongrel_config[:host]}:#{mongrel_config[:port]}"
+    application_logger.info "** Starting Mongrel listening at #{mongrel_config[:host]}:#{mongrel_config[:port]}"
     mongrel_http_server = Mongrel::HttpServer.new(mongrel_config[:host], mongrel_config[:port])
-    puts "** Registering MosEisley (Version #{VERSION})"
-    puts "** Using #{adapter.class.name}"
-    mongrel_http_server.register("/", MosEisley::Handler.new(adapter))
-    LOGGER.debug("Mongrel MosEisley started")
-    LOGGER.debug("Using #{adapter.class.name}")
-    LOGGER.debug("FSAdapter StorageLocation: #{adapter.storage_location}") if adapter.class == Persistable::FSAdapter
+    application_logger.info "** Registering MosEisley (Version #{VERSION})"
+    application_logger.info "** Using #{adapter.class.name}"
+    mongrel_http_server.register("/", MosEisley::Handler.new(adapter,request_logger))
+    application_logger.debug("Mongrel MosEisley started")
+    application_logger.debug("Using #{adapter.class.name}")
+    application_logger.debug("FSAdapter StorageLocation: #{adapter.storage_location}") if adapter.class == Persistable::FSAdapter
     mongrel_http_server.run.join
   end
     
   def load_mongrel_config
     load_yml(MONGREL_YML_PATH, DEFAULT_MONGREL_CONFIG)
+  end
+  
+  def set_log_config(options)
+    if options.has_key?(:application_logfile)
+      @application_logger = Logger.new(options[:application_logfile])
+    else
+      @application_logger = Logger.new(STDOUT)      
+    end
+    application_logger.level = Logger::DEBUG
+    application_logger.datetime_format = "%H:%M:%S"
+    if options.has_key?(:request_logfile)
+      @request_logger = Logger.new(options[:request_logfile])
+    else
+      @request_logger = Logger.new(STDOUT)
+    end
   end
   
   def set_adapter(options = {})
