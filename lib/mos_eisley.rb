@@ -12,7 +12,8 @@ require "mos_eisley/image"
 require 'active_support'
 
 class MosEisley
-  VERSION = '0.3.2'
+
+  VERSION = '0.3.3'
   ADAPTER_YML_PATH = "adapter.yml"
   MONGREL_YML_PATH = "mongrel.yml"
   
