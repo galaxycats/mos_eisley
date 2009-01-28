@@ -3,13 +3,13 @@ require File.dirname(__FILE__) + '/lib/mos_eisley'
 
 $hoe = Hoe.new('mos_eisley', MosEisley::VERSION) do |p|
   p.developer('Caroo GmbH', 'dev@pkw.de')
-  p.post_install_message = 'PostInstall.txt'
   # p.changes              = p.paragraphs_of("History.txt", 0..1).join("\n\n")
   p.extra_deps = [
     ['mongrel', '>= 0.3.10'],
-    # ["renum"],
-    # ["thumbnail_generator"],
-    # ["persistable"]
+    ['active_support'],
+    ["pkwde-renum"],
+    ["pkwde-image_resizer"],
+    ["pkwde-persistable"]
   ]
   p.extra_dev_deps = [
     ['mocha'],

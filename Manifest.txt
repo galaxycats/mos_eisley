@@ -10,7 +10,6 @@ lib/mos_eisley.rb
 lib/mos_eisley/exceptions.rb
 lib/mos_eisley/handler.rb
 lib/mos_eisley/image.rb
-lib/mos_eisley/image_sizes.rb
 test/assets/123456
 test/assets/adapter.yml
 test/handler_test.rb
