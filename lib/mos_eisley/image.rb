@@ -39,7 +39,9 @@ class MosEisley
     def persistence_data=(data)
       self.file_data = data
     end
-  
+    
+    # TODO: fix "private attribute?" warnings, use instance variable instead of attr_writer
+    
     private
   
       attr_writer :image_id

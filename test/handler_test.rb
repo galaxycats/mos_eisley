@@ -9,10 +9,10 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
   
   def test_should_should_not_resize_if_image_file_data_not_found
     adapter = mock("Adapter")
-    mos_eisley_handler = MosEisley::Handler.new(adapter)
+    mos_eisley_handler = MosEisley::Handler.new(adapter,logger=Logger.new("/dev/null"),logger)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     parsed_path_mock = stub("parsed_path")
     parsed_path_mock.expects(:resize_to).never
     parsed_path_mock.stubs(:image_id)
@@ -20,6 +20,7 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     mos_eisley_handler.expects(:parse_and_validate_path).returns(parsed_path_mock)
     image = mock("image")
     image.expects(:file_data).returns(nil)
+    image.expects(:persistence_key).returns("badkey")
     MosEisley::Image.expects(:new).returns(image)
     ImageResizer::ResizeGenerator.expects(:resize).never
     response_socket = StringIO.new
@@ -92,7 +93,7 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     mos_eisley_handler = MosEisley::Handler.new(adapter)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     response = mock("Mongrel::MockHttpResponse")
     response.expects(:start).with(404)
     response.expects(:body).returns("dummybody")
@@ -105,10 +106,10 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
   def test_should_return_404_if_image_in_adapter_not_found
     adapter = mock("Adapter")
     adapter.expects(:read)
-    mos_eisley_handler = MosEisley::Handler.new(adapter)
+    mos_eisley_handler = MosEisley::Handler.new(adapter,logger=Logger.new("/dev/null"),logger)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     UrlSigner.any_instance.stubs(:hash).returns("deadbeef00")
     response = mock("Mongrel::MockHttpResponse")
     response.expects(:start).with(404)
@@ -124,7 +125,7 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     mos_eisley_handler = MosEisley::Handler.new(adapter)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     response = mock("Mongrel::MockHttpResponse")
     response.expects(:start).with(404)
     response.expects(:body).returns("dummybody")
@@ -139,7 +140,7 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     mos_eisley_handler = MosEisley::Handler.new(adapter)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     response_socket = StringIO.new
     response = Mongrel::HttpResponse.new(response_socket)
     request = mock("Mongrel::MockHttpRequest")
@@ -165,7 +166,7 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     mos_eisley_handler = MosEisley::Handler.new(adapter)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     response_socket = StringIO.new
     response = Mongrel::HttpResponse.new(response_socket)
     request = mock("Mongrel::MockHttpRequest")
@@ -190,7 +191,7 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     mos_eisley_handler = MosEisley::Handler.new(adapter)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     response_socket = StringIO.new
     response = Mongrel::HttpResponse.new(response_socket)
     request = mock("Mongrel::MockHttpRequest")
@@ -223,7 +224,7 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     mos_eisley_handler = MosEisley::Handler.new(adapter)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     response_socket = StringIO.new
     response = Mongrel::HttpResponse.new(response_socket)
     request = mock("Mongrel::MockHttpRequest")
@@ -250,7 +251,7 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     mos_eisley_handler = MosEisley::Handler.new(adapter)
     logfile = StringIO.new
     logger = Logger.new(logfile)
-    mos_eisley_handler.expects(:logger).returns(logger)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
     response_socket = StringIO.new
     response = Mongrel::HttpResponse.new(response_socket)
     response.stubs(:status).returns("200")
@@ -271,6 +272,43 @@ class MosEisley::HandlerTest < Test::Unit::TestCase
     response.header.out.rewind
     response.body.rewind
     assert_equal "123.123.123.123 - - [01/Jan/2009:20:15:01 CET] \"GET /ingendein-seo-kram-67434267-85x64_deadbeef00.jpg HTTP/1.1\" 200 35\n", logfile.string
+  end
+  
+  def test_should_have_loggers
+    adapter = mock("Adapter")
+    access_logfile = StringIO.new
+    access_logger = Logger.new(access_logfile)
+    application_logfile = StringIO.new
+    application_logger = Logger.new(application_logfile)
+    mos_eisley_handler = MosEisley::Handler.new(adapter,access_logger,application_logger)
+    assert_equal application_logger, mos_eisley_handler.application_logger
+    assert_equal access_logger, mos_eisley_handler.access_logger
+  end
+  
+  def test_should_log_errors_to_application_log
+    adapter = mock("Adapter")
+    mos_eisley_handler = MosEisley::Handler.new(adapter)
+    logfile = StringIO.new
+    logger = Logger.new(logfile)
+    mos_eisley_handler.expects(:access_logger).returns(logger)
+    application_logfile = StringIO.new
+    application_logger = Logger.new(application_logfile)
+    mos_eisley_handler.expects(:application_logger).returns(application_logger)
+    response_socket = StringIO.new
+    response = Mongrel::HttpResponse.new(response_socket)
+    response.stubs(:status).returns("200")
+    request = mock("Mongrel::MockHttpRequest")
+    UrlSigner.any_instance.stubs(:hash).returns("deadbeef00")
+
+    dummy_params = {"PATH_INFO" => "/ingendein-seo-kram-67434267-85x64_deadbeef00.jpg", "SERVER_NAME" => "localhost", "REQUEST_URI" => "/ingendein-seo-kram-67434267-85x64_deadbeef00.jpg", "REMOTE_ADDR" => "123.123.123.123", "REQUEST_METHOD" => "GET", "SERVER_PROTOCOL" => "HTTP/1.1"}
+    request.expects(:params).at_least_once.returns(dummy_params)
+    image = mock("DummyImage")
+    MosEisley::Image.expects(:new).returns(image)
+    image.expects(:file_data).returns(nil)
+    image.expects(:persistence_key).returns("67434267")
+    Time.stubs(:now).returns(Time.local(2009,"jan",1,20,15,1))
+    process_response = mos_eisley_handler.process(request,response)
+    assert_equal "[01/Jan/2009:20:15:01 CET] Could not find file for key: 67434267\n", application_logfile.string
   end
   
 end

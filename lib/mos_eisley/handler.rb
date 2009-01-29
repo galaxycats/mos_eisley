@@ -2,13 +2,14 @@ require 'url_signer'
 
 class MosEisley
   class Handler < Mongrel::HttpHandler
-    attr_reader :logger
+    attr_reader :access_logger, :application_logger
     # TODO: Secret key in config file verschieben
     URL_SIGNER = UrlSigner.new("h5h56j675j*!f$uipojf%")
     
-    def initialize(adapter,logger=nil)
+    def initialize(adapter,access_logger = Logger.new(STDOUT), application_logger = Logger.new(STDOUT) )
       self.adapter = adapter
-      self.logger = logger || Logger.new(STDOUT) 
+      self.access_logger = access_logger
+      self.application_logger = application_logger
     end
 
     def process(request, response)
@@ -26,12 +27,13 @@ class MosEisley
             out.write(image.file_data.read)
           end
         else
+          self.application_logger.error("[#{Time.now.strftime("%d/%b/%Y:%H:%M:%S %Z")}] Could not find file for key: #{image.persistence_key}")
           respond_with_404(response)
         end
       rescue MosEisley::Exceptions::InvalidPath, MosEisley::Exceptions::PathParseError => e
         respond_with_404(response, e)
       ensure
-        self.logger.info("#{request.params['REMOTE_ADDR']} - - [#{Time.now.strftime("%d/%b/%Y:%H:%M:%S %Z")}] \"#{request.params['REQUEST_METHOD']} #{request.params['REQUEST_URI']} #{request.params['SERVER_PROTOCOL']}\" #{response.status} #{response.body.size}")
+        self.access_logger.info("#{request.params['REMOTE_ADDR']} - - [#{Time.now.strftime("%d/%b/%Y:%H:%M:%S %Z")}] \"#{request.params['REQUEST_METHOD']} #{request.params['REQUEST_URI']} #{request.params['SERVER_PROTOCOL']}\" #{response.status} #{response.body.size}")
       end
     end
 
@@ -39,10 +41,9 @@ class MosEisley
 
     attr_accessor :adapter
     
-    def logger=(logger)
-      @logger = logger
-    end
-    
+    attr_writer :access_logger
+    attr_writer :application_logger
+        
     class ParsedPath
       attr_accessor :image_id, :resize_to, :seo
 
