@@ -6,7 +6,7 @@ $hoe = Hoe.new('mos_eisley', MosEisley::VERSION) do |p|
   # p.changes              = p.paragraphs_of("History.txt", 0..1).join("\n\n")
   p.extra_deps = [
     ['mongrel', '>= 0.3.10'],
-    ['active_support'],
+    ['activesupport'],
     ["pkwde-renum"],
     ["pkwde-image_resizer"],
     ["pkwde-persistable"]

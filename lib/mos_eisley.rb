@@ -13,7 +13,7 @@ require 'active_support'
 
 class MosEisley
 
-  VERSION = '0.3.3'
+  VERSION = '0.3.4'
   ADAPTER_YML_PATH = "adapter.yml"
   MONGREL_YML_PATH = "mongrel.yml"
   
