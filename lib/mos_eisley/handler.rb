@@ -82,7 +82,7 @@ class MosEisley
 
     def parse_path(path)
       # TODO: Moeglichen Endungen in config file verschieben
-      match = path.match(/^\/([\w\-]+)\-(\d+)(?:\-(\d+x\d+))?\.jpg$/)
+      match = path.match(/^\/(.+)\-(\d+)(?:\-(\d+x\d+))?\.jpg$/)
       unless match.nil?
         image_id = match[2]
         resize_to = match[3]
